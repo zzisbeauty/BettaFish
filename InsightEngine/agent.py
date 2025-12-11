@@ -42,39 +42,31 @@ class DeepSearchAgent:
     """Deep Search Agent主类"""
 
     def __init__(self, config: Optional[Settings] = None):
-        """
-        初始化Deep Search Agent
-
+        """ 初始化Deep Search Agent
         Args:
             config: 可选配置对象（不填则用全局settings）
         """
         self.config = config or settings
-
         # 初始化LLM客户端
         self.llm_client = self._initialize_llm()
-
         # 初始化搜索工具集
         self.search_agency = MediaCrawlerDB()
-
         # 初始化聚类小模型（懒加载）
         self._clustering_model = None
-
         # 初始化情感分析器
         self.sentiment_analyzer = multilingual_sentiment_analyzer
-
         # 初始化节点
         self._initialize_nodes()
-
         # 状态
         self.state = State()
 
         # 确保输出目录存在
         os.makedirs(self.config.OUTPUT_DIR, exist_ok=True)
-
         logger.info(f"Insight Agent已初始化")
         logger.info(f"使用LLM: {self.llm_client.get_model_info()}")
         logger.info(f"搜索工具集: MediaCrawlerDB (支持5种本地数据库查询工具)")
         logger.info(f"情感分析: WeiboMultilingualSentiment (支持22种语言的情感分析)")
+
 
     def _initialize_llm(self) -> LLMClient:
         """初始化LLM客户端"""
@@ -96,18 +88,13 @@ class DeepSearchAgent:
         """懒加载聚类模型"""
         if self._clustering_model is None:
             logger.info("  加载聚类模型 (paraphrase-multilingual-MiniLM-L12-v2)...")
-            self._clustering_model = SentenceTransformer(
-                "paraphrase-multilingual-MiniLM-L12-v2"
-            )
+            self._clustering_model = SentenceTransformer("paraphrase-multilingual-MiniLM-L12-v2")
         return self._clustering_model
 
     def _validate_date_format(self, date_str: str) -> bool:
-        """
-        验证日期格式是否为YYYY-MM-DD
-
+        """ 验证日期格式是否为YYYY-MM-DD
         Args:
             date_str: 日期字符串
-
         Returns:
             是否为有效格式
         """
@@ -132,14 +119,11 @@ class DeepSearchAgent:
         max_results: int = MAX_CLUSTERED_RESULTS,
         results_per_cluster: int = RESULTS_PER_CLUSTER,
     ) -> List:
-        """
-        对搜索结果进行聚类并采样
-
+        """ 对搜索结果进行聚类并采样
         Args:
             results: 搜索结果列表
             max_results: 最大返回结果数
             results_per_cluster: 每个聚类返回的结果数
-
         Returns:
             采样后的结果列表
         """
@@ -188,9 +172,7 @@ class DeepSearchAgent:
             return results[:max_results]
 
     def execute_search_tool(self, tool_name: str, query: str, **kwargs) -> DBResponse:
-        """
-        执行指定的数据库查询工具（集成关键词优化中间件和情感分析）
-
+        """ 执行指定的数据库查询工具（集成关键词优化中间件和情感分析）
         Args:
             tool_name: 工具名称，可选值：
                 - "search_hot_content": 查找热点内容
@@ -202,7 +184,6 @@ class DeepSearchAgent:
             query: 搜索关键词/话题
             **kwargs: 额外参数（如start_date, end_date, platform, limit, enable_sentiment等）
                      enable_sentiment: 是否自动对搜索结果进行情感分析（默认True）
-
         Returns:
             DBResponse对象（可能包含情感分析结果）
         """
@@ -212,9 +193,7 @@ class DeepSearchAgent:
         if tool_name == "search_hot_content":
             time_period = kwargs.get("time_period", "week")
             limit = kwargs.get("limit", 100)
-            response = self.search_agency.search_hot_content(
-                time_period=time_period, limit=limit
-            )
+            response = self.search_agency.search_hot_content(time_period=time_period, limit=limit)
 
             # 检查是否需要进行情感分析
             enable_sentiment = kwargs.get("enable_sentiment", True)
@@ -463,33 +442,22 @@ class DeepSearchAgent:
                 result_dict = result.__dict__
                 response = {
                     "success": result.success and result.analysis_performed,
-                    "total_analyzed": 1
-                    if result.analysis_performed and result.success
-                    else 0,
+                    "total_analyzed": 1 if result.analysis_performed and result.success else 0,
                     "results": [result_dict],
                 }
                 if not result.analysis_performed:
                     response["success"] = False
-                    response["warning"] = (
-                        result.error_message or "情感分析功能不可用，已直接返回原始文本"
-                    )
+                    response["warning"] = (result.error_message or "情感分析功能不可用，已直接返回原始文本")
                 return response
             else:
                 texts_list = list(texts)
-                batch_result = self.sentiment_analyzer.analyze_batch(
-                    texts_list, show_progress=True
-                )
+                batch_result = self.sentiment_analyzer.analyze_batch(texts_list, show_progress=True)
                 response = {
-                    "success": batch_result.analysis_performed
-                    and batch_result.success_count > 0,
-                    "total_analyzed": batch_result.total_processed
-                    if batch_result.analysis_performed
-                    else 0,
+                    "success": batch_result.analysis_performed and batch_result.success_count > 0,
+                    "total_analyzed": batch_result.total_processed if batch_result.analysis_performed else 0,
                     "success_count": batch_result.success_count,
                     "failed_count": batch_result.failed_count,
-                    "average_confidence": batch_result.average_confidence
-                    if batch_result.analysis_performed
-                    else 0.0,
+                    "average_confidence": batch_result.average_confidence if batch_result.analysis_performed else 0.0,
                     "results": [result.__dict__ for result in batch_result.results],
                 }
                 if not batch_result.analysis_performed:
@@ -510,38 +478,22 @@ class DeepSearchAgent:
             return {"success": False, "error": str(e), "results": []}
 
     def research(self, query: str, save_report: bool = True) -> str:
-        """
-        执行深度研究
-
+        """ 执行深度研究
         Args:
             query: 研究查询
             save_report: 是否保存报告到文件
-
         Returns:
             最终报告内容
         """
-        logger.info(f"\n{'=' * 60}")
-        logger.info(f"开始深度研究: {query}")
-        logger.info(f"{'=' * 60}")
-
+        logger.info(f"\n{'=' * 60}"); logger.info(f"开始深度研究: {query}"); logger.info(f"{'=' * 60}")
         try:
-            # Step 1: 生成报告结构
-            self._generate_report_structure(query)
-
-            # Step 2: 处理每个段落
-            self._process_paragraphs()
-
-            # Step 3: 生成最终报告
-            final_report = self._generate_final_report()
-
-            # Step 4: 保存报告
-            if save_report:
+            self._generate_report_structure(query) # Step 1: 生成报告结构
+            self._process_paragraphs() # Step 2: 处理每个段落
+            final_report = self._generate_final_report() # Step 3: 生成最终报告
+            if save_report: # Step 4: 保存报告
                 self._save_report(final_report)
-
             logger.info("深度研究完成！")
-
             return final_report
-
         except Exception as e:
             logger.exception(f"研究过程中发生错误: {str(e)}")
             raise e
@@ -552,10 +504,8 @@ class DeepSearchAgent:
 
         # 创建报告结构节点
         report_structure_node = ReportStructureNode(self.llm_client, query)
-
         # 生成结构并更新状态
         self.state = report_structure_node.mutate_state(state=self.state)
-
         _message = f"报告结构已生成，共 {len(self.state.paragraphs)} 个段落:"
         for i, paragraph in enumerate(self.state.paragraphs, 1):
             _message += f"\n  {i}. {paragraph.title}"
@@ -566,44 +516,28 @@ class DeepSearchAgent:
         total_paragraphs = len(self.state.paragraphs)
 
         for i in range(total_paragraphs):
-            logger.info(
-                f"\n[步骤 2.{i + 1}] 处理段落: {self.state.paragraphs[i].title}"
-            )
+            logger.info(f"\n[步骤 2.{i + 1}] 处理段落: {self.state.paragraphs[i].title}")
             logger.info("-" * 50)
-
-            # 初始搜索和总结
-            self._initial_search_and_summary(i)
-
-            # 反思循环
-            self._reflection_loop(i)
-
-            # 标记段落完成
-            self.state.paragraphs[i].research.mark_completed()
-
+            self._initial_search_and_summary(i) # 初始搜索和总结
+            self._reflection_loop(i) # 反思循环
+            self.state.paragraphs[i].research.mark_completed() # 标记段落完成
             progress = (i + 1) / total_paragraphs * 100
             logger.info(f"段落处理完成 ({progress:.1f}%)")
 
     def _initial_search_and_summary(self, paragraph_index: int):
-        """执行初始搜索和总结"""
+        """基于结构化 node 返回的结构化信息 执行初始搜索和总结"""
         paragraph = self.state.paragraphs[paragraph_index]
 
-        # 准备搜索输入
-        search_input = {"title": paragraph.title, "content": paragraph.content}
-
-        # 生成搜索查询和工具选择
-        logger.info("  - 生成搜索查询...")
+        search_input = {"title": paragraph.title, "content": paragraph.content} # 准备搜索输入
+        logger.info("  - 生成搜索查询...") # 生成搜索查询和工具选择
         search_output = self.first_search_node.run(search_input)
         search_query = search_output["search_query"]
-        search_tool = search_output.get(
-            "search_tool", "search_topic_globally"
-        )  # 默认工具
+        search_tool = search_output.get("search_tool", "search_topic_globally")  # 默认工具
         reasoning = search_output["reasoning"]
 
         logger.info(f"  - 搜索查询: {search_query}")
         logger.info(f"  - 选择的工具: {search_tool}")
         logger.info(f"  - 推理: {reasoning}")
-
-        # 执行搜索
         logger.info("  - 执行数据库查询...")
 
         # 处理特殊参数
@@ -616,17 +550,13 @@ class DeepSearchAgent:
 
             if start_date and end_date:
                 # 验证日期格式
-                if self._validate_date_format(
-                    start_date
-                ) and self._validate_date_format(end_date):
+                if self._validate_date_format(start_date) and self._validate_date_format(end_date):
                     search_kwargs["start_date"] = start_date
                     search_kwargs["end_date"] = end_date
                     logger.info(f"  - 时间范围: {start_date} 到 {end_date}")
                 else:
                     logger.info(f"    日期格式错误（应为YYYY-MM-DD），改用全局搜索")
-                    logger.info(
-                        f"      提供的日期: start_date={start_date}, end_date={end_date}"
-                    )
+                    logger.info(f"    提供的日期: start_date={start_date}, end_date={end_date}")
                     search_tool = "search_topic_globally"
             elif search_tool == "search_topic_by_date":
                 logger.info(f"    search_topic_by_date工具缺少时间参数，改用全局搜索")
@@ -639,9 +569,7 @@ class DeepSearchAgent:
                 search_kwargs["platform"] = platform
                 logger.info(f"  - 指定平台: {platform}")
             else:
-                logger.warning(
-                    f"    search_topic_on_platform工具缺少平台参数，改用全局搜索"
-                )
+                logger.warning(f"    search_topic_on_platform工具缺少平台参数，改用全局搜索")
                 search_tool = "search_topic_globally"
 
         # 处理限制参数，使用配置文件中的默认值而不是agent提供的参数
@@ -652,13 +580,9 @@ class DeepSearchAgent:
             search_kwargs["limit"] = limit
         elif search_tool in ["search_topic_globally", "search_topic_by_date"]:
             if search_tool == "search_topic_globally":
-                limit_per_table = (
-                    self.config.DEFAULT_SEARCH_TOPIC_GLOBALLY_LIMIT_PER_TABLE
-                )
+                limit_per_table = (self.config.DEFAULT_SEARCH_TOPIC_GLOBALLY_LIMIT_PER_TABLE)
             else:  # search_topic_by_date
-                limit_per_table = (
-                    self.config.DEFAULT_SEARCH_TOPIC_BY_DATE_LIMIT_PER_TABLE
-                )
+                limit_per_table = (self.config.DEFAULT_SEARCH_TOPIC_BY_DATE_LIMIT_PER_TABLE)
             search_kwargs["limit_per_table"] = limit_per_table
         elif search_tool in ["get_comments_for_topic", "search_topic_on_platform"]:
             if search_tool == "get_comments_for_topic":
@@ -667,9 +591,7 @@ class DeepSearchAgent:
                 limit = self.config.DEFAULT_SEARCH_TOPIC_ON_PLATFORM_LIMIT
             search_kwargs["limit"] = limit
 
-        search_response = self.execute_search_tool(
-            search_tool, search_query, **search_kwargs
-        )
+        search_response = self.execute_search_tool(search_tool, search_query, **search_kwargs)
 
         # 转换为兼容格式
         search_results = []
@@ -689,9 +611,7 @@ class DeepSearchAgent:
                         "content": result.title_or_content,
                         "score": result.hotness_score,
                         "raw_content": result.title_or_content,
-                        "published_date": result.publish_time.isoformat()
-                        if result.publish_time
-                        else None,
+                        "published_date": result.publish_time.isoformat() if result.publish_time else None,
                         "platform": result.platform,
                         "content_type": result.content_type,
                         "author": result.author_nickname,
@@ -702,11 +622,7 @@ class DeepSearchAgent:
         if search_results:
             _message = f"  - 找到 {len(search_results)} 个搜索结果"
             for j, result in enumerate(search_results, 1):
-                date_info = (
-                    f" (发布于: {result.get('published_date', 'N/A')})"
-                    if result.get("published_date")
-                    else ""
-                )
+                date_info = (f" (发布于: {result.get('published_date', 'N/A')})" if result.get("published_date") else "")
                 _message += f"\n    {j}. {result['title'][:50]}...{date_info}"
             logger.info(_message)
         else:
@@ -777,17 +693,11 @@ class DeepSearchAgent:
                         search_kwargs["end_date"] = end_date
                         logger.info(f"    时间范围: {start_date} 到 {end_date}")
                     else:
-                        logger.info(
-                            f"      日期格式错误（应为YYYY-MM-DD），改用全局搜索"
-                        )
-                        logger.info(
-                            f"        提供的日期: start_date={start_date}, end_date={end_date}"
-                        )
+                        logger.info(f"      日期格式错误（应为YYYY-MM-DD），改用全局搜索")
+                        logger.info(f"        提供的日期: start_date={start_date}, end_date={end_date}")
                         search_tool = "search_topic_globally"
                 elif search_tool == "search_topic_by_date":
-                    logger.warning(
-                        f"      search_topic_by_date工具缺少时间参数，改用全局搜索"
-                    )
+                    logger.warning(f"      search_topic_by_date工具缺少时间参数，改用全局搜索")
                     search_tool = "search_topic_globally"
 
             # 处理需要平台参数的工具
@@ -797,9 +707,7 @@ class DeepSearchAgent:
                     search_kwargs["platform"] = platform
                     logger.info(f"    指定平台: {platform}")
                 else:
-                    logger.warning(
-                        f"      search_topic_on_platform工具缺少平台参数，改用全局搜索"
-                    )
+                    logger.warning(f"      search_topic_on_platform工具缺少平台参数，改用全局搜索")
                     search_tool = "search_topic_globally"
 
             # 处理限制参数
@@ -864,11 +772,7 @@ class DeepSearchAgent:
             if search_results:
                 _message = f"    找到 {len(search_results)} 个反思搜索结果"
                 for j, result in enumerate(search_results, 1):
-                    date_info = (
-                        f" (发布于: {result.get('published_date', 'N/A')})"
-                        if result.get("published_date")
-                        else ""
-                    )
+                    date_info = (f" (发布于: {result.get('published_date', 'N/A')})" if result.get("published_date") else "")
                     _message += f"\n      {j}. {result['title'][:50]}...{date_info}"
                 logger.info(_message)
             else:

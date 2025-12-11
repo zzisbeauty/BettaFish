@@ -64,7 +64,7 @@ class DeepSearchAgent:
             base_url=self.config.QUERY_ENGINE_BASE_URL,
         )
     
-    def _initialize_nodes(self):
+    def _initialize_nodes(self): # ====================
         """初始化处理节点"""
         self.first_search_node = FirstSearchNode(self.llm_client)
         self.reflection_node = ReflectionNode(self.llm_client)

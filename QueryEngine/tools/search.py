@@ -45,9 +45,7 @@ except ImportError:
 
 @dataclass
 class SearchResult:
-    """
-    网页搜索结果数据类
-    包含 published_date 属性来存储新闻发布日期
+    """ 网页搜索结果数据类; 包含 published_date 属性来存储新闻发布日期
     """
     title: str
     url: str
@@ -75,9 +73,7 @@ class TavilyResponse:
 # --- 2. 核心客户端与专用工具集 ---
 
 class TavilyNewsAgency:
-    """
-    一个包含多种专用新闻舆情搜索工具的客户端。
-    每个公共方法都设计为供 AI Agent 独立调用的工具。
+    """ 一个包含多种专用新闻舆情搜索工具的客户端。 每个公共方法都设计为供 AI Agent 独立调用的工具。
     """
 
     def __init__(self, api_key: Optional[str] = None):

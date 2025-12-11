@@ -1,0 +1,74 @@
+version: "3.9"  
+  
+services:  
+  bettafish:  
+    build:  
+      context: /home/nvidia/Desktop/BettaFish  
+      dockerfile: Dockerfile.my
+      args:  
+        # 必须设置 args 来传递 Shell 变量  
+        HTTP_PROXY: ${HTTP_PROXY}  
+        HTTPS_PROXY: ${HTTPS_PROXY}  
+        NO_PROXY: ${NO_PROXY}  
+    image: videorag:latest  
+    container_name: bettafish  
+    restart: "no"  
+    environment:  
+      - PYTHONUNBUFFERED=1  
+      - STREAMLIT_SERVER_ENABLE_FILE_WATCHER=false  
+      - PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple  
+    ports:  
+      - "5000:5000"  
+      - "8501:8501"  
+      - "8502:8502"  
+      - "8503:8503"  
+    volumes:  
+      # 项目路径映射  
+      - /home/nvidia/Desktop/BettaFish:/app  
+      # 模型地址映射  
+      - /home/nvidia/Desktop/localmodels:/app/localmodels  
+      # 数据地址映射  
+      - /home/nvidia/Desktop/localdatasets:/app/localdatasets  
+      # 缓存目录映射  
+      - /home/nvidia/Desktop/cachedatas/bettafish:/app/cachedatas  
+      # HuggingFace 缓存目录  
+      - /home/nvidia/Desktop/cachedatas/bettafish/huggingface:/root/.cache/huggingface  
+      # ModelScope 缓存目录  
+      - /home/nvidia/Desktop/cachedatas/bettafish/modelscope:/root/.cache/modelscope  
+      # Playwright 浏览器缓存  
+      - /home/nvidia/Desktop/cachedatas/bettafish/playwright:/ms-playwright  
+      # 日志目录  
+      - /home/nvidia/Desktop/cachedatas/bettafish/logs:/app/logs  
+      # 报告输出目录  
+      - /home/nvidia/Desktop/cachedatas/bettafish/final_reports:/app/final_reports  
+      # Streamlit 报告目录  
+      - /home/nvidia/Desktop/cachedatas/bettafish/insight_engine_streamlit_reports:/app/insight_engine_streamlit_reports  
+      - /home/nvidia/Desktop/cachedatas/bettafish/media_engine_streamlit_reports:/app/media_engine_streamlit_reports  
+      - /home/nvidia/Desktop/cachedatas/bettafish/query_engine_streamlit_reports:/app/query_engine_streamlit_reports  
+      # 环境变量文件  
+      - /home/nvidia/Desktop/BettaFish/.env:/app/.env  
+    # GPU 支持（如果需要）  
+    deploy:  
+      resources:  
+        reservations:  
+          devices:  
+            - driver: nvidia  
+              count: all  
+              capabilities: [gpu]  
+    working_dir: /app  
+    command: python app.py  
+  
+  db:  
+    image: postgres:15  
+    container_name: bettafish-db  
+    restart: "no"  
+    env_file:  
+      - /home/nvidia/Desktop/BettaFish/.env  
+    environment:  
+      POSTGRES_USER: ${POSTGRES_USER:-bettafish}  
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-bettafish}  
+      POSTGRES_DB: ${POSTGRES_DB:-bettafish}  
+    ports:  
+      - "${POSTGRES_PORT:-5444}:5432"  
+    volumes:  
+      - /home/nvidia/Desktop/cachedatas/bettafish/db_data:/var/lib/postgresql/data

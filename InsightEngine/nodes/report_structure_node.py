@@ -23,9 +23,7 @@ class ReportStructureNode(StateMutationNode):
     """生成报告结构的节点"""
     
     def __init__(self, llm_client, query: str):
-        """
-        初始化报告结构节点
-        
+        """ 初始化报告结构节点
         Args:
             llm_client: LLM客户端
             query: 用户查询
@@ -38,13 +36,10 @@ class ReportStructureNode(StateMutationNode):
         return isinstance(self.query, str) and len(self.query.strip()) > 0
     
     def run(self, input_data: Any = None, **kwargs) -> List[Dict[str, str]]:
-        """
-        调用LLM生成报告结构
-        
+        """ 调用LLM生成报告结构
         Args:
             input_data: 输入数据（这里不使用，使用初始化时的query）
             **kwargs: 额外参数
-            
         Returns:
             报告结构列表
         """
@@ -65,12 +60,9 @@ class ReportStructureNode(StateMutationNode):
             raise e
     
     def process_output(self, output: str) -> List[Dict[str, str]]:
-        """
-        处理LLM输出，提取报告结构
-        
+        """ 处理LLM输出，提取报告结构
         Args:
             output: LLM原始输出
-            
         Returns:
             处理后的报告结构列表
         """
@@ -81,7 +73,7 @@ class ReportStructureNode(StateMutationNode):
             
             # 记录清理后的输出用于调试
             logger.info(f"清理后的输出: {cleaned_output}")
-            
+
             # 解析JSON
             try:
                 report_structure = json.loads(cleaned_output)

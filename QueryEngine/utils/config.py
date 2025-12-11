@@ -52,8 +52,11 @@ class Settings(BaseSettings):
         extra = "allow"
 
 
+
 # 创建全局配置实例
 settings = Settings()
+
+
 
 def print_config(config: Settings):
     """

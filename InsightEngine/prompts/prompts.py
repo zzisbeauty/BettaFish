@@ -166,6 +166,11 @@ SYSTEM_PROMPT_REPORT_STRUCTURE = f"""
 只返回JSON对象，不要有解释或额外文本。
 """
 
+
+
+
+
+
 # 每个段落第一次搜索的系统提示词
 SYSTEM_PROMPT_FIRST_SEARCH = f"""
 你是一位专业的舆情分析师。你将获得报告中的一个段落，其标题和预期内容将按照以下JSON模式定义提供：
@@ -265,6 +270,13 @@ SYSTEM_PROMPT_FIRST_SEARCH = f"""
 确保输出是一个符合上述输出JSON模式定义的JSON对象。
 只返回JSON对象，不要有解释或额外文本。
 """
+
+
+
+
+
+
+
 
 # 每个段落第一次总结的系统提示词
 SYSTEM_PROMPT_FIRST_SUMMARY = f"""
