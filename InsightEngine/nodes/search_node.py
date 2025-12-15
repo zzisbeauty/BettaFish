@@ -22,9 +22,7 @@ class FirstSearchNode(BaseNode):
     """为段落生成首次搜索查询的节点"""
     
     def __init__(self, llm_client):
-        """
-        初始化首次搜索节点
-        
+        """ 初始化首次搜索节点
         Args:
             llm_client: LLM客户端
         """
@@ -43,15 +41,25 @@ class FirstSearchNode(BaseNode):
         return False
     
     def run(self, input_data: Any, **kwargs) -> Dict[str, str]:
-        """
-        调用LLM生成搜索查询和理由
-        
+        """ 调用LLM生成搜索查询和理由
         Args:
-            input_data: 包含title和content的字符串或字典
+            input_data: 包含title和content的字符串或字典 ， such as：
+                        {  
+                            "title": "事件发展脉络",  
+                            "content": "梳理武汉大学某事件从发生到现在的完整时间线"  
+                        }
             **kwargs: 额外参数
-            
         Returns:
-            包含search_query和reasoning的字典
+            包含search_query和reasoning的字典， such as ：
+
+            {  
+                    "search_query": "武汉大学 时间线 事件经过",  
+                    "search_tool": "search_topic_by_date",  
+                    "reasoning": "需要按时间顺序追踪事件发展，使用日期搜索工具获取时间线数据",  
+                    "start_date": "2024-01-01",  
+                    "end_date": "2024-12-31",  
+                    "enable_sentiment": true  
+            }
         """
         try:
             if not self.validate_input(input_data):
@@ -79,12 +87,9 @@ class FirstSearchNode(BaseNode):
             raise e
     
     def process_output(self, output: str) -> Dict[str, str]:
-        """
-        处理LLM输出，提取搜索查询和推理
-        
+        """ 处理LLM输出，提取搜索查询和推理
         Args:
             output: LLM原始输出
-            
         Returns:
             包含search_query和reasoning的字典
         """
@@ -138,10 +143,9 @@ class FirstSearchNode(BaseNode):
             # 返回默认查询
             return self._get_default_search_query()
     
+
     def _get_default_search_query(self) -> Dict[str, str]:
-        """
-        获取默认搜索查询
-        
+        """ 获取默认搜索查询
         Returns:
             默认的搜索查询字典
         """
@@ -149,6 +153,11 @@ class FirstSearchNode(BaseNode):
             "search_query": "相关主题研究",
             "reasoning": "由于解析失败，使用默认搜索查询"
         }
+
+
+
+
+
 
 
 class ReflectionNode(BaseNode):

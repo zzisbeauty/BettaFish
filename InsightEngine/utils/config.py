@@ -42,4 +42,6 @@ class Settings(BaseSettings):
         case_sensitive = False
         extra = "allow"
 
+
+
 settings = Settings()

@@ -22,7 +22,11 @@ utils_dir = os.path.join(root_dir, 'utils')
 if utils_dir not in sys.path:
     sys.path.append(utils_dir)
 
+
+
 from retry_helper import with_graceful_retry, SEARCH_API_RETRY_CONFIG
+
+
 
 @dataclass
 class KeywordOptimizationResponse:
@@ -33,16 +37,14 @@ class KeywordOptimizationResponse:
     success: bool
     error_message: str = ""
 
+
+
 class KeywordOptimizer:
-    """
-    关键词优化器
-    使用硅基流动的Qwen3模型将Agent生成的搜索词优化为更贴近真实舆情的关键词
+    """ 关键词优化器 使用硅基流动的Qwen3模型将Agent生成的搜索词优化为更贴近真实舆情的关键词
     """
     
     def __init__(self, api_key: str = None, base_url: str = None, model_name: str = None):
-        """
-        初始化关键词优化器
-        
+        """ 初始化关键词优化器
         Args:
             api_key: 硅基流动API密钥，如果不提供则从配置文件读取
             base_url: 接口基础地址，默认使用配置文件提供的SiliconFlow地址
@@ -61,13 +63,10 @@ class KeywordOptimizer:
         self.model = model_name or settings.KEYWORD_OPTIMIZER_MODEL_NAME
     
     def optimize_keywords(self, original_query: str, context: str = "") -> KeywordOptimizationResponse:
-        """
-        优化搜索关键词
-        
+        """ 优化搜索关键词
         Args:
             original_query: Agent生成的原始搜索查询
-            context: 额外的上下文信息（如段落标题、内容描述等）
-            
+            context: 额外的上下文信息（如段落标题、内容描述等） 
         Returns:
             KeywordOptimizationResponse: 优化后的关键词列表
         """

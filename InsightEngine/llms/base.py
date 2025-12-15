@@ -24,11 +24,43 @@ except ImportError:
             return func
         return decorator
 
-    LLM_RETRY_CONFIG = None
+    LLM_RETRY_CONFIG = None  # 这行代码不多余，即使装饰器是空，但是需要有 LLM_RETRY_CONFIG 传入，因此在这里声明 LLM_RETRY_CONFIG  是 None 是必须的
+
+
+LLM_RETRY_CONFIG = {
+    "retries": 3,      # 最大重试次数
+    "delay": 1,        # 每次重试的间隔秒数
+}
+
+
+# try:
+#     from retry_helper import with_retry, LLM_RETRY_CONFIG
+# except ImportError:
+#     import time
+#     from datetime import datetime
+#     def with_retry(config=None):
+#         """ 带参数装饰器：可以指定重试次数和重试间隔 """
+#         def decorator(func):
+#             def wrapper(*args, **kwargs):
+#                 retries = config.get("retries", 3) if config else 1
+#                 delay = config.get("delay", 1) if config else 0
+#                 for attempt in range(1, retries + 1):
+#                     try:
+#                         print(f"[Attempt {attempt}] Calling {func.__name__}...")
+#                         return func(*args, **kwargs)  # 业务函数参数透传
+#                     except Exception as e:
+#                         print(f"Error: {e}, retrying in {delay}s...")
+#                         time.sleep(delay)
+#                 return None  # 如果重试失败，返回 None
+#             return wrapper
+#         return decorator
+
+
+
 
 
 class LLMClient:
-    """Minimal wrapper around the OpenAI-compatible chat completion API."""
+    """ inimal wrapper around the OpenAI-compatible chat completion API. """
 
     def __init__(self, api_key: str, model_name: str, base_url: Optional[str] = None):
         if not api_key:
@@ -58,10 +90,7 @@ class LLMClient:
     def invoke(self, system_prompt: str, user_prompt: str, **kwargs) -> str:
         current_time = datetime.now().strftime("%Y年%m月%d日%H时%M分")
         time_prefix = f"今天的实际时间是{current_time}"
-        if user_prompt:
-            user_prompt = f"{time_prefix}\n{user_prompt}"
-        else:
-            user_prompt = time_prefix
+        user_prompt = f"{time_prefix}\n{user_prompt}" if user_prompt else time_prefix
         messages = [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt},
@@ -70,12 +99,10 @@ class LLMClient:
         allowed_keys = {"temperature", "top_p", "presence_penalty", "frequency_penalty", "stream"}
         extra_params = {key: value for key, value in kwargs.items() if key in allowed_keys and value is not None}
 
-        timeout = kwargs.pop("timeout", self.timeout)
-
         response = self.client.chat.completions.create(
             model=self.model_name,
             messages=messages,
-            timeout=timeout,
+            timeout=kwargs.pop("timeout", self.timeout),
             **extra_params,
         )
 
@@ -84,9 +111,7 @@ class LLMClient:
         return ""
 
     def stream_invoke(self, system_prompt: str, user_prompt: str, **kwargs) -> Generator[str, None, None]:
-        """
-        流式调用LLM，逐步返回响应内容
-        
+        """ 流式调用LLM，逐步返回响应内容
         Args:
             system_prompt: 系统提示词
             user_prompt: 用户提示词
