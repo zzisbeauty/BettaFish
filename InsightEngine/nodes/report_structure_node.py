@@ -54,7 +54,7 @@ class ReportStructureNode(StateMutationNode):
             
             logger.info(f"成功生成 {len(processed_response)} 个段落结构")
             return processed_response
-            
+
         except Exception as e:
             logger.exception(f"生成报告结构失败: {str(e)}")
             raise e
