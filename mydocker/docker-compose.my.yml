@@ -3,17 +3,27 @@ version: "3.9"
 services:  
   bettafish:  
     build:  
-      context: /home/nvidia/Desktop/BettaFish  
-      dockerfile: Dockerfile.my
-      args:  
+      context: ..
+      dockerfile: mydocker/Dockerfile.my
+      args: 
+        # export http_proxy=http://192.168.1.4:7890 https_proxy=http://192.168.1.4:7890 all_proxy=socks5://192.168.1.4:7890
         # 必须设置 args 来传递 Shell 变量  
-        HTTP_PROXY: ${HTTP_PROXY}  
-        HTTPS_PROXY: ${HTTPS_PROXY}  
-        NO_PROXY: ${NO_PROXY}  
-    image: videorag:latest  
+        HTTP_PROXY: ${http_proxy}  
+        HTTPS_PROXY: ${https_proxy}  
+        NO_PROXY: ${no_proxy}  
+        ALL_PROXY: ${all_proxy}
+    image: bettafish:dev
     container_name: bettafish  
+    # 2. 增加 TTY 支持，方便后续进入容器交互
+    tty: true
+    stdin_open: true
     restart: "no"  
     environment:  
+      # 运行时也保持代理配置（如果程序内部需要联网）
+      - http_proxy=${http_proxy}
+      - https_proxy=${https_proxy}
+      - all_proxy=${all_proxy}
+      - no_proxy=${no_proxy}
       - PYTHONUNBUFFERED=1  
       - STREAMLIT_SERVER_ENABLE_FILE_WATCHER=false  
       - PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple  
@@ -26,25 +36,25 @@ services:
       # 项目路径映射  
       - /home/nvidia/Desktop/BettaFish:/app  
       # 模型地址映射  
-      - /home/nvidia/Desktop/localmodels:/app/localmodels  
+      - /home/nvidia/Desktop/volumes-models:/app/localmodels  
       # 数据地址映射  
-      - /home/nvidia/Desktop/localdatasets:/app/localdatasets  
+      - /home/nvidia/Desktop/volumes-datas:/app/localdatasets  
       # 缓存目录映射  
-      - /home/nvidia/Desktop/cachedatas/bettafish:/app/cachedatas  
+      - /home/nvidia/Desktop/volumes-cache/bettafish:/app/cachedatas  
       # HuggingFace 缓存目录  
-      - /home/nvidia/Desktop/cachedatas/bettafish/huggingface:/root/.cache/huggingface  
+      - /home/nvidia/Desktop/volumes-cache/bettafish/huggingface:/root/.cache/huggingface  
       # ModelScope 缓存目录  
-      - /home/nvidia/Desktop/cachedatas/bettafish/modelscope:/root/.cache/modelscope  
+      - /home/nvidia/Desktop/volumes-cache/bettafish/modelscope:/root/.cache/modelscope  
       # Playwright 浏览器缓存  
-      - /home/nvidia/Desktop/cachedatas/bettafish/playwright:/ms-playwright  
+      - /home/nvidia/Desktop/volumes-cache/bettafish/playwright:/ms-playwright  
       # 日志目录  
-      - /home/nvidia/Desktop/cachedatas/bettafish/logs:/app/logs  
+      - /home/nvidia/Desktop/volumes-cache/bettafish/logs:/app/logs  
       # 报告输出目录  
-      - /home/nvidia/Desktop/cachedatas/bettafish/final_reports:/app/final_reports  
+      - /home/nvidia/Desktop/volumes-cache/bettafish/final_reports:/app/final_reports  
       # Streamlit 报告目录  
-      - /home/nvidia/Desktop/cachedatas/bettafish/insight_engine_streamlit_reports:/app/insight_engine_streamlit_reports  
-      - /home/nvidia/Desktop/cachedatas/bettafish/media_engine_streamlit_reports:/app/media_engine_streamlit_reports  
-      - /home/nvidia/Desktop/cachedatas/bettafish/query_engine_streamlit_reports:/app/query_engine_streamlit_reports  
+      - /home/nvidia/Desktop/volumes-cache/bettafish/insight_engine_streamlit_reports:/app/insight_engine_streamlit_reports  
+      - /home/nvidia/Desktop/volumes-cache/bettafish/media_engine_streamlit_reports:/app/media_engine_streamlit_reports  
+      - /home/nvidia/Desktop/volumes-cache/bettafish/query_engine_streamlit_reports:/app/query_engine_streamlit_reports  
       # 环境变量文件  
       - /home/nvidia/Desktop/BettaFish/.env:/app/.env  
     # GPU 支持（如果需要）  
@@ -56,12 +66,14 @@ services:
               count: all  
               capabilities: [gpu]  
     working_dir: /app  
-    command: python app.py  
+
+    # command: python app.py 
+    command: tail -f /dev/null 
   
   db:  
     image: postgres:15  
-    container_name: bettafish-db  
-    restart: "no"  
+    container_name: bettafish_db
+    restart: "always"  
     env_file:  
       - /home/nvidia/Desktop/BettaFish/.env  
     environment:  
@@ -71,4 +83,4 @@ services:
     ports:  
       - "${POSTGRES_PORT:-5444}:5432"  
     volumes:  
-      - /home/nvidia/Desktop/cachedatas/bettafish/db_data:/var/lib/postgresql/data
+      - /home/nvidia/Desktop/volumes-cache/bettafish/db_data:/var/lib/postgresql/data

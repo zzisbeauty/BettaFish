@@ -1,5 +1,5 @@
 # 使用您的基础镜像  
-FROM videorag:latest  
+FROM xtransformers_local:latest
   
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]  
   
@@ -44,7 +44,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libgbm1 \  
     ffmpeg \  
     && apt-get clean && rm -rf /var/lib/apt/lists/*  
-  
+
 # 安装 uv（如果您的镜像没有）  
 RUN curl -LsSf --retry 3 --retry-delay 2 --proto '=https' --proto-redir '=https' --tlsv1.2 https://astral.sh/uv/install.sh | sh  
   
@@ -63,4 +63,7 @@ RUN mkdir -p /ms-playwright logs final_reports insight_engine_streamlit_reports 
   
 EXPOSE 5000 8501 8502 8503  
   
-CMD ["python", "app.py"]
+# 执行
+# CMD ["python", "app.py"]
+# 不用执行服务
+CMD ["/bin/bash"]  

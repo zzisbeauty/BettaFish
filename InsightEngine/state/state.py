@@ -107,7 +107,7 @@ class Paragraph:
     content: str = ""                                              # 段落的预期内容（初始规划）
     research: Research = field(default_factory=Research)          # 研究进度
     order: int = 0                                                 # 段落顺序
-    
+
     def is_completed(self) -> bool:
         """检查段落是否完成"""
         return self.research.is_completed and bool(self.research.latest_summary)
